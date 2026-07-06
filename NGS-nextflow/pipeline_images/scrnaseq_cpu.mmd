@@ -1,0 +1,9 @@
+graph TD
+    A([Input FASTQ]) --> B(FastQC)
+    R([Reference FASTA + GTF]) --> C{STAR_INDEX}
+    A --> D(STARsolo)
+    C --> D
+    W([10x Whitelist]) --> D
+    D --> E(Summarize)
+    E --> F([Summary Report])
+    D --> G([BAM + Matrix Files])

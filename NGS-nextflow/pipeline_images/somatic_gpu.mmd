@@ -1,0 +1,8 @@
+graph TD
+    A([Input FASTQ]) --> B(FastQC)
+    A --> C(fastp)
+    C --> D(FQ2BAM - GPU)
+    D --> E(Mutect2 - CPU)
+    E --> F(FilterMutectCalls)
+    F --> G(PASS VCF)
+    G --> H([Final Filtered Somatic VCF])

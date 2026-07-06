@@ -1,0 +1,11 @@
+graph TD
+    A([Input FASTQ]) --> B(FastQC)
+    A --> C(fastp)
+    C --> D(BWA-MEM)
+    D --> E(SortSam)
+    E --> F(MarkDuplicates)
+    F --> G(Index BAM)
+    G --> H(Mutect2)
+    H --> I(FilterMutectCalls)
+    I --> J(PASS VCF)
+    J --> K([Final Filtered Somatic VCF])

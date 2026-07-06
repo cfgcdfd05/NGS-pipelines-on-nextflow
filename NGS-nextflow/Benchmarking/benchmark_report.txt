@@ -1,0 +1,143 @@
+==========================================================================================
+                      NEXTFLOW PIPELINE BENCHMARKING REPORT (v4)                       
+==========================================================================================
+Benchmarking Suite Path : /mnt/1E0E3E6E0E3E3ED9/NextFlow/NGS-nextflow/Benchmarking
+Reference Genome        : hg38 (3.2GB FASTA + BWA/GATK/STAR indices)
+System CPUs             : 128
+System RAM              : 251 GB
+==========================================================================================
+
+NOTE: Resource stats (CPU%, RAM) are captured via 'docker stats' which monitors
+  the actual running containers, not just the orchestrating shell process.
+
+
+==========================================================================================
+  ACTUAL BIOLOGICAL DATASET (WES)
+==========================================================================================
+  Dataset Description : 2 x ~1.9GB compressed FASTQ (Garvan NA12878 WES, sample1_R1/R2.fastq.gz)
+  Logs Directory      : /mnt/1E0E3E6E0E3E3ED9/NextFlow/NGS-nextflow/Benchmarking/logs_actual
+==========================================================================================
+
+── Germline Variant Calling ─────────────────────────────────────────────────────────
+  [CPU Engine]
+    Status          : SUCCESS
+    Wall-Clock Time : 66m 33s (3993s)
+    Peak CPU Usage  : 7712.5%
+    Avg CPU Usage   : 1303.1%
+    Peak RAM Usage  : 16.81 GB
+
+  [GPU Engine (NVIDIA Parabricks)]
+    Status          : SUCCESS
+    Wall-Clock Time : 9m 01s (541s)	
+    Peak CPU Usage  : 3447.5%
+    Avg CPU Usage   : 460.1%
+    Peak RAM Usage  : 23.92 GB
+    Total Peak VRAM : 18.55 GB
+    Avg GPU Util    : 13.1%
+    Peak GPU Temp   : 54°C
+    Peak Power Draw : 182.7 W
+      GPU 0 (NVIDIA GeForce RTX 4090, 23028.0 MiB total):
+        Peak VRAM : 18123.0 MiB  |  Avg Util: 26.2%  |  Peak Temp: 54°C
+      GPU 1 (NVIDIA GeForce RTX 4090, 24564.0 MiB total):
+        Peak VRAM : 886.0 MiB  |  Avg Util: 0.0%  |  Peak Temp: 42°C
+
+  >> GPU is 7.38x FASTER than CPU <<
+
+
+── ChIP-seq Peak Calling ────────────────────────────────────────────────────────────
+  [CPU Engine]
+    Status          : SUCCESS
+    Wall-Clock Time : 36m 52s (2212s)
+    Peak CPU Usage  : 9308.7%
+    Avg CPU Usage   : 1941.1%
+    Peak RAM Usage  : 16.92 GB
+
+  [GPU Engine (NVIDIA Parabricks)]
+    Status          : SUCCESS
+    Wall-Clock Time : 6m 21s (381s)
+    Peak CPU Usage  : 2205.5%
+    Avg CPU Usage   : 200.8%
+    Peak RAM Usage  : 23.77 GB
+    Total Peak VRAM : 14.93 GB
+    Avg GPU Util    : 4.0%
+    Peak GPU Temp   : 53°C
+    Peak Power Draw : 181.8 W
+      GPU 0 (NVIDIA GeForce RTX 4090, 23028.0 MiB total):
+        Peak VRAM : 14409.0 MiB  |  Avg Util: 8.0%  |  Peak Temp: 53°C
+      GPU 1 (NVIDIA GeForce RTX 4090, 24564.0 MiB total):
+        Peak VRAM : 875.0 MiB  |  Avg Util: 0.0%  |  Peak Temp: 42°C
+
+  >> GPU is 5.81x FASTER than CPU <<
+
+
+── RNA-seq Quantification ───────────────────────────────────────────────────────────
+  [CPU Engine]
+    Status          : SUCCESS
+    Wall-Clock Time : 8m 16s (496s)
+    Peak CPU Usage  : 1591.6%
+    Avg CPU Usage   : 180.2%
+    Peak RAM Usage  : 32.28 GB
+
+  [GPU Engine (NVIDIA Parabricks)]
+    Status          : SUCCESS
+    Wall-Clock Time : 4m 37s (277s)
+    Peak CPU Usage  : 2500.4%
+    Avg CPU Usage   : 353.5%
+    Peak RAM Usage  : 88.04 GB
+    Total Peak VRAM : 22.87 GB
+    Avg GPU Util    : 11.3%
+    Peak GPU Temp   : 49°C
+    Peak Power Draw : 121.5 W
+      GPU 0 (NVIDIA GeForce RTX 4090, 23028.0 MiB total):
+        Peak VRAM : 22545.0 MiB  |  Avg Util: 22.3%  |  Peak Temp: 49°C
+      GPU 1 (NVIDIA GeForce RTX 4090, 24564.0 MiB total):
+        Peak VRAM : 875.0 MiB  |  Avg Util: 0.2%  |  Peak Temp: 41°C
+
+  >> GPU is 1.79x FASTER than CPU <<
+
+
+── Somatic Variant Calling ──────────────────────────────────────────────────────────
+  [CPU Engine]
+    Status          : SUCCESS
+    Wall-Clock Time : 62m 01s (3721s)
+    Peak CPU Usage  : 7713.9%
+    Avg CPU Usage   : 2370.1%
+    Peak RAM Usage  : 16.73 GB
+
+  [GPU Engine (NVIDIA Parabricks)]
+    Status          : SUCCESS
+    Wall-Clock Time : 48m 04s (2884s)
+    Peak CPU Usage  : 3183.2%
+    Avg CPU Usage   : 180.6%
+    Peak RAM Usage  : 22.81 GB
+    Total Peak VRAM : 14.62 GB
+    Avg GPU Util    : 0.6%
+    Peak GPU Temp   : 52°C
+    Peak Power Draw : 183.4 W
+      GPU 0 (NVIDIA GeForce RTX 4090, 23028.0 MiB total):
+        Peak VRAM : 14101.0 MiB  |  Avg Util: 1.1%  |  Peak Temp: 52°C
+      GPU 1 (NVIDIA GeForce RTX 4090, 24564.0 MiB total):
+        Peak VRAM : 877.0 MiB  |  Avg Util: 0.1%  |  Peak Temp: 42°C
+
+  >> GPU is 1.29x FASTER than CPU <<
+
+
+── ACTUAL BIOLOGICAL DATASET (WES) : COMPARATIVE SUMMARY TABLE ──
+==========================================================================================
+Pipeline                  | CPU Status| CPU Time          | CPU Peak| CPU RAM   | GPU Status  | GPU Time          | Speedup | Peak VRAM   
+------------------------------------------------------------------------------------------------------------------------------------------
+Germline Variant Calling  | SUCCESS   | 66m 33s (3993s)   | 7713%   | 16.81 GB  | SUCCESS     | 9m 01s (541s)     | 7.38x   | 18.55 GB    
+ChIP-seq Peak Calling     | SUCCESS   | 36m 52s (2212s)   | 9309%   | 16.92 GB  | SUCCESS     | 6m 21s (381s)     | 5.81x   | 14.93 GB    
+RNA-seq Quantification    | SUCCESS   | 8m 16s (496s)     | 1592%   | 32.28 GB  | SUCCESS     | 4m 37s (277s)     | 1.79x   | 22.87 GB    
+Somatic Variant Calling   | SUCCESS   | 62m 01s (3721s)   | 7714%   | 16.73 GB  | SUCCESS     | 48m 04s (2884s)   | 1.29x   | 14.62 GB    
+==========================================================================================
+
+==========================================================================================
+NOTES & OBSERVATIONS
+────────────────────────────────────────
+1. Resource stats are captured from 'docker stats' (polling actual container CPU/RAM).
+2. GPU VRAM figures are per-GPU peak values summed across all detected GPUs.
+3. ChIP-seq GPU appearing 'slower' on very small test files: Parabricks container
+   startup + GPU initialization overhead (~20-30s) dominates total runtime.
+4. RNA-seq STAR index: Cached cleanly at ./data/ref/star_index with 14-base words.
+5. All test datasets, reference files, and output results are preserved in ./Benchmarking/.
