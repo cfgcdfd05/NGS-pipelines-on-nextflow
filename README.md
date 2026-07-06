@@ -1,4 +1,4 @@
-[README.md](https://github.com/user-attachments/files/29699373/README.md)
+[README.md](https://github.com/user-attachments/files/29699484/README.md)
 Developed by Aryan Danny, BITS summer intern under the guidance of Dr. Akash Ranjan, CDFD
 
 # Nextflow Genomics Suite
@@ -408,6 +408,296 @@ graph TD
     classDef default fill:#808080,stroke:#333,stroke-width:2px,color:#ffffff,font-weight:bold;
     classDef process fill:#808080,stroke:#333,stroke-width:2px,color:#ffffff,font-weight:bold;
     class FASTQC,FASTP,FQ2BAM,MACS2 process;
+```
+
+### 4. ChIP-seq CPU Pipeline (`CHIPseq_CPU.nf`)
+Utilizes **Fastp** for read trimming, **BWA mem** for CPU alignment, **GATK MarkDuplicates**, and **MACS2** for peak calling. Supports Input DNA controls via a `samplesheet.csv`.
+
+```mermaid
+graph TD
+    %% Inputs
+    Reads[/Raw FASTQ Reads/]
+    Samplesheet[/Samplesheet CSV Optional/]
+    Ref[/Reference Genome .fasta/]
+    
+    %% Processes
+    FASTQC[FastQC: Quality Control]
+    FASTP[Fastp: Read Trimming]
+    BWA[BWA_ALIGN: Read Alignment]
+    SORT[SORT_BAM: Sort Alignments]
+    MARKDUP[MARK_DUPLICATES: Tag Duplicates]
+    INDEX[INDEX_BAM: Index BAM File]
+    MACS2[MACS2: Narrow Peak Calling]
+    
+    %% Outputs
+    QC_OUT[/QC Reports/]
+    TRIM_OUT[/Trimmed FASTQ/]
+    BAM_OUT[/Processed BAMs/]
+    PEAK_OUT[/MACS2 Peaks & BedGraph/]
+
+    %% Flow
+    Reads --> FASTQC
+    FASTQC --> QC_OUT
+    
+    Reads --> FASTP
+    FASTP --> TRIM_OUT
+    
+    TRIM_OUT --> BWA
+    Ref --> BWA
+    BWA --> SORT
+    SORT --> MARKDUP
+    MARKDUP --> INDEX
+    INDEX --> BAM_OUT
+    
+    BAM_OUT --> MACS2
+    Samplesheet -.->|Pairs Treatment w/ Control| MACS2
+    MACS2 --> PEAK_OUT
+    
+    %% Styling
+    classDef default fill:#808080,stroke:#333,stroke-width:2px,color:#ffffff,font-weight:bold;
+    classDef process fill:#808080,stroke:#333,stroke-width:2px,color:#ffffff,font-weight:bold;
+    class FASTQC,FASTP,BWA,SORT,MARKDUP,INDEX,MACS2 process;
+```
+
+### 5. RNA-seq CPU Pipeline (`RNAseq_CPU.nf`)
+Utilizes **Fastp** for quality trimming, **STAR** for splice-aware alignment against an indexed reference genome, and **featureCounts** for gene-level expression quantification.
+
+```mermaid
+graph TD
+    %% Inputs
+    Reads[/Raw FASTQ Reads/]
+    RefIndex[/STAR Genome Index/]
+    GTF[/Reference Annotation .gtf/]
+    
+    %% Processes
+    FASTQC[FastQC: Quality Control]
+    FASTP[Fastp: Read Trimming]
+    STAR[STAR: Splice-Aware Alignment]
+    FC[featureCounts: Gene Expression Quantification]
+    
+    %% Outputs
+    QC_OUT[/QC Reports/]
+    TRIM_OUT[/Trimmed FASTQ/]
+    BAM_OUT[/Aligned BAM & Splice Junctions/]
+    COUNTS_OUT[/Gene Expression Matrix/]
+
+    %% Flow
+    Reads --> FASTQC
+    FASTQC --> QC_OUT
+    
+    Reads --> FASTP
+    FASTP --> TRIM_OUT
+    
+    TRIM_OUT --> STAR
+    RefIndex --> STAR
+    GTF --> STAR
+    STAR --> BAM_OUT
+    
+    BAM_OUT --> FC
+    GTF --> FC
+    FC --> COUNTS_OUT
+    
+    %% Styling
+    classDef default fill:#808080,stroke:#333,stroke-width:2px,color:#ffffff,font-weight:bold;
+    classDef process fill:#808080,stroke:#333,stroke-width:2px,color:#ffffff,font-weight:bold;
+    class FASTQC,FASTP,STAR,FC process;
+```
+
+### 6. RNA-seq GPU Pipeline (`RNAseq_GPU.nf`)
+Utilizes **NVIDIA Parabricks rna_fq2bam** for GPU-accelerated RNA-seq alignment and sorting, followed by **featureCounts** for expression quantification.
+
+```mermaid
+graph TD
+    %% Inputs
+    Reads[/Raw FASTQ Reads/]
+    RefIndex[/STAR Genome Index/]
+    GTF[/Reference Annotation .gtf/]
+    
+    %% Processes
+    FASTQC[FastQC: Quality Control]
+    FASTP[Fastp: Read Trimming]
+    RNA_FQ2BAM[Parabricks rna_fq2bam: GPU Alignment & Sorting]
+    FC[featureCounts: Gene Expression Quantification]
+    
+    %% Outputs
+    QC_OUT[/QC Reports/]
+    TRIM_OUT[/Trimmed FASTQ/]
+    BAM_OUT[/GPU Aligned Coordinate Sorted BAM/]
+    COUNTS_OUT[/Gene Expression Matrix/]
+
+    %% Flow
+    Reads --> FASTQC
+    FASTQC --> QC_OUT
+    
+    Reads --> FASTP
+    FASTP --> TRIM_OUT
+    
+    TRIM_OUT --> RNA_FQ2BAM
+    RefIndex --> RNA_FQ2BAM
+    RNA_FQ2BAM --> BAM_OUT
+    
+    BAM_OUT --> FC
+    GTF --> FC
+    FC --> COUNTS_OUT
+    
+    %% Styling
+    classDef default fill:#808080,stroke:#333,stroke-width:2px,color:#ffffff,font-weight:bold;
+    classDef process fill:#808080,stroke:#333,stroke-width:2px,color:#ffffff,font-weight:bold;
+    class FASTQC,FASTP,RNA_FQ2BAM,FC process;
+```
+
+### 7. Somatic CPU Pipeline (`Somatic_CPU.nf`)
+Utilizes **BWA mem** and **GATK MarkDuplicates** for read processing, followed by **GATK Mutect2** and **FilterMutectCalls** for somatic variant calling in tumor-only or tumor-normal modes.
+
+```mermaid
+graph TD
+    %% Inputs
+    Reads[/Raw FASTQ Reads/]
+    Ref[/Reference Genome .fasta/]
+    
+    %% Processes
+    FASTQC[FastQC: Quality Control]
+    FASTP[Fastp: Read Trimming]
+    BWA[BWA_ALIGN: Read Alignment]
+    SORT[SORT_BAM: Sort Alignments]
+    MARKDUP[MARK_DUPLICATES: Tag Duplicates]
+    INDEX[INDEX_BAM: Index BAM File]
+    MUTECT2[MUTECT2: Call Somatic Variants]
+    FILTER[FILTER_MUTECT_CALLS: Filter Somatic Calls]
+    PASS[PASS_VCF: Extract PASS Somatic Variants]
+    
+    %% Outputs
+    QC_OUT[/QC Reports/]
+    BAM_OUT[/Processed BAMs/]
+    RAW_VCF[/Raw Somatic VCF/]
+    FILT_VCF[/Filtered Somatic VCF/]
+    FINAL_VCF[/Final PASS Somatic VCF/]
+
+    %% Flow
+    Reads --> FASTQC
+    FASTQC --> QC_OUT
+    
+    Reads --> FASTP
+    FASTP --> TRIM_OUT[/Trimmed FASTQ/]
+    
+    TRIM_OUT --> BWA
+    Ref --> BWA
+    BWA --> SORT
+    SORT --> MARKDUP
+    MARKDUP --> INDEX
+    INDEX --> BAM_OUT
+    
+    BAM_OUT --> MUTECT2
+    Ref --> MUTECT2
+    MUTECT2 --> RAW_VCF
+    
+    RAW_VCF --> FILTER
+    Ref --> FILTER
+    FILTER --> FILT_VCF
+    
+    FILT_VCF --> PASS
+    PASS --> FINAL_VCF
+    
+    %% Styling
+    classDef default fill:#808080,stroke:#333,stroke-width:2px,color:#ffffff,font-weight:bold;
+    classDef process fill:#808080,stroke:#333,stroke-width:2px,color:#ffffff,font-weight:bold;
+    class FASTQC,FASTP,BWA,SORT,MARKDUP,INDEX,MUTECT2,FILTER,PASS process;
+```
+
+### 8. Somatic GPU Pipeline (`Somatic_GPU.nf`)
+Utilizes **NVIDIA Parabricks fq2bam** for GPU-accelerated alignment, sorting, and duplicate marking, followed by **GATK Mutect2** for somatic variant calling.
+
+```mermaid
+graph TD
+    %% Inputs
+    Reads[/Raw FASTQ Reads/]
+    Ref[/Reference Genome .fasta/]
+    
+    %% Processes
+    FASTQC[FastQC: Quality Control]
+    FASTP[Fastp: Read Trimming]
+    FQ2BAM[FQ2BAM: GPU Align, Sort & MarkDup]
+    MUTECT2[MUTECT2: Call Somatic Variants]
+    FILTER[FILTER_MUTECT_CALLS: Filter Somatic Calls]
+    PASS[PASS_VCF: Extract PASS Somatic Variants]
+    
+    %% Outputs
+    QC_OUT[/QC Reports/]
+    TRIM_OUT[/Trimmed FASTQ/]
+    BAM_OUT[/Processed BAMs/]
+    RAW_VCF[/Raw Somatic VCF/]
+    FILT_VCF[/Filtered Somatic VCF/]
+    FINAL_VCF[/Final PASS Somatic VCF/]
+
+    %% Flow
+    Reads --> FASTQC
+    FASTQC --> QC_OUT
+    
+    Reads --> FASTP
+    FASTP --> TRIM_OUT
+    
+    TRIM_OUT --> FQ2BAM
+    Ref --> FQ2BAM
+    FQ2BAM --> BAM_OUT
+    
+    BAM_OUT --> MUTECT2
+    Ref --> MUTECT2
+    MUTECT2 --> RAW_VCF
+    
+    RAW_VCF --> FILTER
+    Ref --> FILTER
+    FILTER --> FILT_VCF
+    
+    FILT_VCF --> PASS
+    PASS --> FINAL_VCF
+    
+    %% Styling
+    classDef default fill:#808080,stroke:#333,stroke-width:2px,color:#ffffff,font-weight:bold;
+    classDef process fill:#808080,stroke:#333,stroke-width:2px,color:#ffffff,font-weight:bold;
+    class FASTQC,FASTP,FQ2BAM,MUTECT2,FILTER,PASS process;
+```
+
+### 9. scRNA-seq CPU Pipeline (`scRNAseq_CPU.nf`)
+Utilizes **STARsolo** for single-cell RNA-seq alignment, Cell Barcode / UMI extraction, error correction, and gene/gene-full expression matrix generation.
+
+```mermaid
+graph TD
+    %% Inputs
+    Reads[/Raw Paired FASTQ R1 CB+UMI / R2 cDNA/]
+    RefIndex[/STAR Genome Index/]
+    GTF[/Reference Annotation .gtf/]
+    Whitelist[/Cell Barcode Whitelist .txt/]
+    
+    %% Processes
+    FASTQC[FastQC: Quality Control]
+    STARSOLO[STARsolo: Single-Cell CB/UMI Alignment & Quantification]
+    SUMMARIZE[SUMMARIZE: Compile Metrics & Report]
+    
+    %% Outputs
+    QC_OUT[/QC Reports/]
+    BAM_OUT[/Coordinate Sorted Aligned BAM/]
+    MATRICES[/Gene & GeneFull Expression Matrices mtx/tsv/]
+    REPORT[/Single-Cell Summary Report/]
+
+    %% Flow
+    Reads --> FASTQC
+    FASTQC --> QC_OUT
+    
+    Reads --> STARSOLO
+    RefIndex --> STARSOLO
+    GTF --> STARSOLO
+    Whitelist --> STARSOLO
+    
+    STARSOLO --> BAM_OUT
+    STARSOLO --> MATRICES
+    
+    MATRICES --> SUMMARIZE
+    SUMMARIZE --> REPORT
+    
+    %% Styling
+    classDef default fill:#808080,stroke:#333,stroke-width:2px,color:#ffffff,font-weight:bold;
+    classDef process fill:#808080,stroke:#333,stroke-width:2px,color:#ffffff,font-weight:bold;
+    class FASTQC,STARSOLO,SUMMARIZE process;
 ```
 
 ---
