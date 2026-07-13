@@ -1,6 +1,8 @@
 [README.md](https://github.com/user-attachments/files/29699484/README.md)
 Developed by Aryan Danny, BITS summer intern under the guidance of Dr. Akash Ranjan, CDFD
 
+### This app runs only on linux and requires docker, It can also be run on windows+wsl+docker desktop but will be slower
+
 # Nextflow Genomics Suite
 
 **Project made in BRIC-CDFD under the guidance of Dr. Akash Ranjan in the Laboratory of Computational & Functional Genomics.**
