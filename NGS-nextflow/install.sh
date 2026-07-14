@@ -110,12 +110,50 @@ chmod +x "$PROJECT/install.sh"
 echo "Done."
 echo ""
 
-echo "[3/5] Setting up Python virtual environment and dependencies..."
+echo "[3/5] Setting up Linux system libraries & Python dependencies..."
+if [[ "$OS_TYPE" == "Linux" ]]; then
+    echo "Checking required Qt6 / PySide6 Linux platform libraries (libxcb)..."
+    if command -v dpkg >/dev/null 2>&1; then
+        DEB_PKGS=(
+            "libxcb-cursor0" "libxcb-glx0" "libxcb-icccm4" "libxcb-image0"
+            "libxcb-keysyms1" "libxcb-randr0" "libxcb-render-util0" "libxcb-shape0"
+            "libxcb-shm0" "libxcb-sync1" "libxcb-xfixes0" "libxcb-xinerama0"
+            "libxcb-xkb1" "libxkbcommon-x11-0" "libx11-xcb1"
+        )
+        MISSING_PKGS=()
+        for pkg in "${DEB_PKGS[@]}"; do
+            if ! dpkg -s "$pkg" >/dev/null 2>&1; then
+                MISSING_PKGS+=("$pkg")
+            fi
+        done
+        if [[ ${#MISSING_PKGS[@]} -gt 0 ]]; then
+            echo "----------------------------------------------------------------------"
+            echo "WARNING: Missing required Qt6/PySide6 Linux libxcb system packages:"
+            echo "  ${MISSING_PKGS[*]}"
+            echo ""
+            echo "To fix 'Could not load the Qt platform plugin xcb', install them via:"
+            echo "  sudo apt-get update && sudo apt-get install -y ${MISSING_PKGS[*]}"
+            echo "----------------------------------------------------------------------"
+        else
+            echo "All required Linux libxcb system packages are present."
+        fi
+    elif command -v rpm >/dev/null 2>&1 && command -v dnf >/dev/null 2>&1; then
+        RPM_PKGS=(
+            "xcb-util-cursor" "xcb-util-wm" "xcb-util-keysyms" "xcb-util-image"
+            "xcb-util-renderutil" "libxkbcommon-x11"
+        )
+        echo "Note: Ensure Qt6/PySide6 XCB libraries are installed on RHEL/Fedora:"
+        echo "  sudo dnf install -y ${RPM_PKGS[*]}"
+    fi
+fi
+
 if command -v python3 >/dev/null 2>&1; then
     python3 -m venv "$PROJECT/.venv"
     source "$PROJECT/.venv/bin/activate"
     pip install --upgrade pip --quiet
-    if [[ -f "$PROJECT/interface/requirements.txt" ]]; then
+    if [[ -f "$PROJECT/requirements.txt" ]]; then
+        pip install -r "$PROJECT/requirements.txt" --quiet
+    elif [[ -f "$PROJECT/interface/requirements.txt" ]]; then
         pip install -r "$PROJECT/interface/requirements.txt" --quiet
     fi
     deactivate

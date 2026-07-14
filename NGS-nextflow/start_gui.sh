@@ -15,8 +15,24 @@ fi
 # Activate the virtual environment
 source "$PROJECT/.venv/bin/activate"
 
-# Launch the GUI
-python "$PROJECT/interface/gui.py"
+# Launch the GUI with diagnostic fallback for missing Linux XCB libraries
+if ! python "$PROJECT/interface/gui.py"; then
+    echo ""
+    echo "=============================================================================="
+    echo "GUI LAUNCH FAILED: Missing Linux Qt6 / XCB platform library (libxcb-cursor0)"
+    echo "=============================================================================="
+    echo "To automatically fix this on your system, run our automated fix script:"
+    echo ""
+    echo "  ./fix_linux_gui.sh"
+    echo ""
+    echo "Or install manually for your distribution:"
+    echo "  Debian/Ubuntu/Mint : sudo apt-get update && sudo apt-get install -y libxcb-cursor0"
+    echo "  Fedora/RHEL/Rocky  : sudo dnf install -y xcb-util-cursor"
+    echo "  Arch/Manjaro       : sudo pacman -S --needed xcb-util-cursor"
+    echo "=============================================================================="
+    deactivate
+    exit 1
+fi
 
 # Deactivate when closed
 deactivate
