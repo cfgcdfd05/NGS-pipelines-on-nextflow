@@ -7,6 +7,73 @@
 
 nextflow.enable.dsl = 2
 
+def getParabricksSpaceFix() {
+    return '''
+    mkdir -p /tmp/pb_fix
+    cat << 'EOF_SITE' > /tmp/pb_fix/sitecustomize.py
+import subprocess
+import os
+
+def _fix_cmd(cmd):
+    if not isinstance(cmd, str):
+        return cmd
+    i = 0
+    res = []
+    n = len(cmd)
+    while i < n:
+        if cmd[i] == '/' and (i == 0 or cmd[i-1] in ' \\t=:('):
+            best_j = -1
+            j = i + 1
+            while j <= n:
+                candidate = cmd[i:j]
+                valid = False
+                if os.path.exists(candidate):
+                    valid = True
+                else:
+                    parent = os.path.dirname(candidate)
+                    base = os.path.basename(candidate)
+                    if parent and os.path.exists(parent) and base and not any(c in base for c in ' \\t\\n|;&>\\"\\''):
+                        valid = True
+                if valid:
+                    if j == n or cmd[j] in ' \\t\\n\\"\\'\\x00|;>':
+                        if ' ' in candidate:
+                            best_j = j
+                j += 1
+            if best_j != -1:
+                path_str = cmd[i:best_j]
+                res.append('\"' + path_str + '\"')
+                i = best_j
+                continue
+        res.append(cmd[i])
+        i += 1
+    return ''.join(res)
+
+_orig_popen = subprocess.Popen
+_orig_run = subprocess.run
+
+def _patched_popen(*args, **kwargs):
+    if args and isinstance(args[0], str) and kwargs.get('shell', False):
+        args = list(args)
+        args[0] = _fix_cmd(args[0])
+    elif 'args' in kwargs and isinstance(kwargs['args'], str) and kwargs.get('shell', False):
+        kwargs['args'] = _fix_cmd(kwargs['args'])
+    return _orig_popen(*args, **kwargs)
+
+def _patched_run(*args, **kwargs):
+    if args and isinstance(args[0], str) and kwargs.get('shell', False):
+        args = list(args)
+        args[0] = _fix_cmd(args[0])
+    elif 'args' in kwargs and isinstance(kwargs['args'], str) and kwargs.get('shell', False):
+        kwargs['args'] = _fix_cmd(kwargs['args'])
+    return _orig_run(*args, **kwargs)
+
+subprocess.Popen = _patched_popen
+subprocess.run = _patched_run
+EOF_SITE
+    export PYTHONPATH=/tmp/pb_fix:${PYTHONPATH:-}
+'''
+}
+
 // ── Parameters ───────────────────────────────────────────────────────────────
 params.project_name     = "rnaseq_gpu_project"
 params.reads            = null
@@ -125,6 +192,7 @@ process GPU_FQ2BAM_RNA {
     def env_override = "export LD_LIBRARY_PATH=/usr/local/nvidia/lib:/usr/local/nvidia/lib64"
     """
     ${env_override}
+    ${getParabricksSpaceFix()}
     echo "INFO: Parabricks rna_fq2bam for ${meta.id}"
     
     pbrun rna_fq2bam \

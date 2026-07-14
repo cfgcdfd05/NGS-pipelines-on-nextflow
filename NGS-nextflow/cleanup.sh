@@ -2,6 +2,9 @@
 set -e
 
 APP_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [[ -f "$APP_ROOT/system_config.env" ]]; then
+    source "$APP_ROOT/system_config.env"
+fi
 
 echo "============================================"
 echo " BIOINFORMATICS APPLICATION"

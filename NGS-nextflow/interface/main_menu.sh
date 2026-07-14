@@ -3,7 +3,10 @@
 # Navigate to script directory
 INTERFACE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 APP_ROOT="$(dirname "$INTERFACE_DIR")"
-RESULTS_DIR="$APP_ROOT/results"
+if [[ -f "$APP_ROOT/system_config.env" ]]; then
+    source "$APP_ROOT/system_config.env"
+fi
+RESULTS_DIR="${NGS_RESULTS_DIR:-$APP_ROOT/results}"
 
 # ── Path helpers ──────────────────────────────────────────────────────────────
 to_linux_path() {
@@ -12,7 +15,8 @@ to_linux_path() {
         local drive="${path:0:1}"
         local rest="${path:2}"
         rest="${rest//\\//}"
-        echo "/mnt/${drive,,}${rest}"
+        local prefix="${NGS_WSL_MOUNT_PREFIX:-/mnt}"
+        echo "${prefix}/${drive,,}${rest}"
     else
         echo "$path"
     fi
@@ -148,7 +152,7 @@ while true; do
     if [[ "${BUILD_REF,,}" == "y" || "${BUILD_REF,,}" == "yes" ]]; then
         echo ""
         echo "Please provide the absolute path to the reference fasta file."
-        echo "Example: D:\Data\Ref\reference.fasta"
+        echo "Example: ${NGS_REF_DIR:-$APP_ROOT/Data/Ref}/reference.fasta"
         REF_FILE_PATH=$(ask_for_path "Reference Fasta File path: " "0" "")
         
         echo "Building reference indexes..."

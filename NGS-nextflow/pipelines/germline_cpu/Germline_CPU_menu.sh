@@ -1,7 +1,11 @@
 #!/bin/bash
 
 PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-RESULTS_DIR="$PROJECT_DIR/results"
+APP_ROOT="$(cd "$PROJECT_DIR/../.." && pwd)"
+if [[ -f "$APP_ROOT/system_config.env" ]]; then
+    source "$APP_ROOT/system_config.env"
+fi
+RESULTS_DIR="${NGS_RESULTS_DIR:-$APP_ROOT/results}"
 
 # ── Path helper: convert Windows path to Linux if needed ──────────────────────
 to_linux_path() {
@@ -10,7 +14,8 @@ to_linux_path() {
         local drive="${path:0:1}"
         local rest="${path:2}"
         rest="${rest//\\//}"
-        echo "/mnt/${drive,,}${rest}"
+        local prefix="${NGS_WSL_MOUNT_PREFIX:-/mnt}"
+        echo "${prefix}/${drive,,}${rest}"
     else
         echo "$path"
     fi

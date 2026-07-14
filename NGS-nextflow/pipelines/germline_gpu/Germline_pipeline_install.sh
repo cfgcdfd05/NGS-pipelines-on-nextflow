@@ -7,7 +7,10 @@ echo " Installation"
 echo "============================================"
 echo ""
 
-PROJECT="$HOME/nextflow-project"
+PROJECT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+if [[ -f "$PROJECT/system_config.env" ]]; then
+    source "$PROJECT/system_config.env"
+fi
 
 # ── 1. Pull required Docker images ────────────────────────────────────────────
 echo "[1/3] Pulling Docker images (this may take a while)..."

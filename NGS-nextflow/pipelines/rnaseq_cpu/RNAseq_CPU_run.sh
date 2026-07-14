@@ -2,7 +2,10 @@
 set -e
 
 PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-APP_ROOT="$(realpath "$PROJECT_DIR/../..")"
+APP_ROOT="$(cd "$PROJECT_DIR/../.." && pwd)"
+if [[ -f "$APP_ROOT/system_config.env" ]]; then
+    source "$APP_ROOT/system_config.env"
+fi
 PROJECT_NAME="$1"
 FASTQ_PATH="$2"
 

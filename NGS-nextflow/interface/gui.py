@@ -16,7 +16,31 @@ from PySide6.QtWidgets import (
 )
 SCRIPT_DIR = Path(__file__).resolve().parent
 APP_ROOT = SCRIPT_DIR.parent
-RESULTS_DIR = APP_ROOT / "results"
+
+def load_system_config():
+    cfg = {
+        "NGS_PROJECT_ROOT": str(APP_ROOT),
+        "NGS_REF_DIR": str(APP_ROOT / "Data" / "Ref"),
+        "NGS_DATA_DIR": str(APP_ROOT / "Data" / "Raw"),
+        "NGS_RESULTS_DIR": str(APP_ROOT / "results"),
+        "NGS_WSL_MOUNT_PREFIX": "/mnt"
+    }
+    env_file = APP_ROOT / "system_config.env"
+    if env_file.exists():
+        try:
+            with open(env_file, "r") as f:
+                for line in f:
+                    line = line.strip()
+                    if line and not line.startswith("#") and "=" in line:
+                        line = line.replace("export ", "").strip()
+                        k, v = line.split("=", 1)
+                        cfg[k.strip()] = v.strip('"\'')
+        except Exception:
+            pass
+    return cfg
+
+SYS_CONFIG = load_system_config()
+RESULTS_DIR = Path(SYS_CONFIG.get("NGS_RESULTS_DIR", APP_ROOT / "results"))
 MODERN_QSS = """
 QMainWindow {
     background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #0F172A, stop:1 #1E1B4B);
@@ -1232,7 +1256,8 @@ QPushButton:pressed {
         path = path_str.replace('\\', '/')
         if len(path) > 1 and path[1] == ':':
             drive = path[0].lower()
-            path = f"/mnt/{drive}{path[2:]}"
+            prefix = SYS_CONFIG.get("NGS_WSL_MOUNT_PREFIX", "/mnt").rstrip('/')
+            path = f"{prefix}/{drive}{path[2:]}"
         return path
     def append_console(self, text):
         self.console.moveCursor(QTextCursor.End)
